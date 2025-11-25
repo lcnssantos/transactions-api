@@ -1,0 +1,300 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Transactions API",
+    "version": "1.0.0",
+    "description": "API para criação e consulta de contas e lançamento de transações financeiras."
+  },
+  "host": "localhost:5500",
+  "basePath": "/api",
+  "schemes": [
+    "http"
+  ],
+  "tags": [
+    {
+      "name": "Accounts",
+      "description": "Gestão de contas"
+    },
+    {
+      "name": "Transactions",
+      "description": "Lançamento de transações"
+    }
+  ],
+  "paths": {
+    "/v1/accounts": {
+      "post": {
+        "tags": [
+          "Accounts"
+        ],
+        "operationId": "createAccount",
+        "summary": "Cria uma nova conta",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateAccountRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Conta criada",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            }
+          },
+          "400": {
+            "description": "Erro de validação do payload",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "422": {
+            "description": "Documento já cadastrado",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "Erro inesperado",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{account_id}": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "operationId": "getAccount",
+        "summary": "Busca uma conta pelo UUID",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID da conta"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conta encontrada",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            }
+          },
+          "400": {
+            "description": "Parâmetro inválido",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "404": {
+            "description": "Conta não encontrada",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "Erro inesperado",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v1/transactions": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "operationId": "createTransaction",
+        "summary": "Cria uma transação para uma conta",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateTransactionRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transação criada",
+            "schema": {
+              "$ref": "#/definitions/Transaction"
+            }
+          },
+          "400": {
+            "description": "Erro de validação do payload",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "422": {
+            "description": "Conta inválida para a transação",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "Erro inesperado",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CreateAccountRequest": {
+      "type": "object",
+      "required": [
+        "document_number"
+      ],
+      "properties": {
+        "document_number": {
+          "type": "string",
+          "minLength": 11,
+          "maxLength": 14,
+          "description": "Número do documento do titular"
+        }
+      }
+    },
+    "CreateTransactionRequest": {
+      "type": "object",
+      "required": [
+        "external_id",
+        "account_id",
+        "operation_type",
+        "amount"
+      ],
+      "properties": {
+        "external_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Identificador externo da transação"
+        },
+        "account_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "UUID da conta"
+        },
+        "operation_type": {
+          "$ref": "#/definitions/OperationType"
+        },
+        "amount": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "description": "Valor em centavos"
+        }
+      }
+    },
+    "Account": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "document_number": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "operation_type": {
+          "$ref": "#/definitions/OperationType"
+        },
+        "amount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "external_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "event_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "account": {
+          "$ref": "#/definitions/Account"
+        }
+      }
+    },
+    "OperationType": {
+      "type": "string",
+      "enum": [
+        "PURCHASE",
+        "WITHDRAWAL",
+        "CREDIT_VOUCHER",
+        "PURCHASE_WITH_INSTALLMENTS"
+      ]
+    },
+    "ProblemDetails": {
+      "type": "object",
+      "description": "Formato de erro baseado em RFC 7807 com campos customizados de validação.",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Código HTTP retornado"
+        },
+        "detail": {
+          "type": "string",
+          "description": "Descrição do erro"
+        },
+        "errors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Mensagens de validação por campo quando aplicável"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
