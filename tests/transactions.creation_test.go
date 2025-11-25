@@ -65,7 +65,7 @@ func (s *TransactionCreationTestSuite) TestShouldCreateTransaction() {
 	s.Require().NotNil(response.Body)
 
 	s.Equal(domain.TransactionOperationTypePurchase, response.Body.OperationType)
-	s.Equal(int64(1000), response.Body.Amount)
+	s.Equal(int64(-1000), response.Body.Amount)
 	s.Equal(externalID, response.Body.ExternalID)
 	s.Equal(account.UID, response.Body.Account.UID)
 	s.Equal(account.DocumentNumber, response.Body.Account.DocumentNumber)
